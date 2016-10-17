@@ -18,6 +18,8 @@
 
 #include "ServerData.h"
 #include "WorldUpdateModule.h"
+#include <iostream>
+#include <fstream>
 
 /***************************************************************************************************
 *
@@ -60,20 +62,38 @@ void WorldUpdateModule::run()
     
     Serializator *s = NULL;
     MessageWithSerializator *ms = NULL;
+
+    // Logging data.
+    int iteration_count = 0;
+    int request_count = 0;
+    int request_start_time = 0;
+    int request_end_time = 0;
     
+    // FileIO.
+    ofstream output_file;
+    char fileName[50];
+    sprintf(fileName, "./requestprocessing/%d_requestprocessing.csv", t_id);
+    output_file.open(fileName, ios::out | ios::trunc);
+    output_file << "t_id, iteration_count, request_count, request_start_time, request_end_time, request_processing_time" << endl;
+
     Uint32 start_quest = SDL_GetTicks() + sd->quest_between;
     Uint32 end_quest   = start_quest + sd->quest_min + rand() % (sd->quest_max-sd->quest_min+1);
     	
 	printf("WorldUpdateModule started\n");
 
+
 	/* main loop */
 	while ( true )
 	{
+		iteration_count++;
 		start_time = SDL_GetTicks();
 		timeout	= sd->regular_update_interval;
 		
         while( (m = comm->receive( timeout, t_id )) != NULL )
         {
+        	request_start_time = start_time;
+        	request_count++;
+
             addr = m->getAddress();
             type = m->getType();
             p = sd->wm.findPlayer( addr, t_id );
@@ -103,6 +123,9 @@ void WorldUpdateModule::run()
             delete m;
             timeout = sd->regular_update_interval - (SDL_GetTicks() - start_time);
             if( ((int)timeout) < 0 )	timeout = 0;
+
+    	    request_end_time = SDL_GetTicks();
+    	    output_file << t_id << ',' << iteration_count << ',' << request_count << ',' <<  request_start_time << ',' << request_end_time << ',' << request_end_time - request_start_time << "\n";
         }
         
         SDL_WaitBarrier(barrier);
@@ -155,8 +178,10 @@ void WorldUpdateModule::run()
 	
 	    SDL_WaitBarrier(barrier);
 	    rui = SDL_GetTicks() - start_time;    
-	    avg_rui = ( avg_rui < 0 ) ? rui : ( avg_rui * 0.95 + (double)rui * 0.05 );	    
+	    avg_rui = ( avg_rui < 0 ) ? rui : ( avg_rui * 0.95 + (double)rui * 0.05 );
 	}
+
+	output_file.close();
 }
 
 /***************************************************************************************************
