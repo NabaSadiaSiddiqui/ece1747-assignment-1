@@ -147,8 +147,10 @@ void WorldUpdateModule::run()
 			if( start_time > start_quest )
 			{
 				start_quest = end_quest + sd->quest_between;
-				sd->quest_pos.x = (rand() % sd->wm.n_regs.x) * CLIENT_MATRIX_SIZE + MAX_CLIENT_VIEW;
-				sd->quest_pos.y = (rand() % sd->wm.n_regs.y) * CLIENT_MATRIX_SIZE + MAX_CLIENT_VIEW;
+				//sd->quest_pos.x = (rand() % sd->wm.n_regs.x) * CLIENT_MATRIX_SIZE + MAX_CLIENT_VIEW;
+				//sd->quest_pos.y = (rand() % sd->wm.n_regs.y) * CLIENT_MATRIX_SIZE + MAX_CLIENT_VIEW;
+				sd->quest_pos.x = 50;
+				sd->quest_pos.y = 50;
 				sd->send_start_quest = 1;
 				if( sd->display_quests )		printf("New quest %d,%d\n", sd->quest_pos.x, sd->quest_pos.y);
 			}			
@@ -171,7 +173,7 @@ void WorldUpdateModule::run()
 	    bucket->start();
 	    while ( ( p = bucket->next() ) != NULL )
 	    {
-	    	update_start_time = SDL_GetTicks();
+	    	update_start_time = start_time;
 	    	update_count++;
 
 	    	ms = new MessageWithSerializator( MESSAGE_SC_REGULAR_UPDATE, t_id, p->address );	assert(ms);
