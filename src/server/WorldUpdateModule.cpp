@@ -64,17 +64,24 @@ void WorldUpdateModule::run()
     MessageWithSerializator *ms = NULL;
 
     // Logging data.
-    int iteration_count = 0;
-    int request_count = 0;
-    int request_start_time = 0;
-    int request_end_time = 0;
-    
+    uint32_t iteration_count = 0;
+    uint32_t request_count = 0;
+    uint32_t request_start_time = 0;
+    uint32_t request_end_time = 0;
+    uint32_t update_count = 0;
+    uint32_t update_start_time = 0;
+    uint32_t update_end_time = 0;
+
     // FileIO.
     ofstream output_file;
+    ofstream ouput_file_updates;
     char fileName[50];
     sprintf(fileName, "./requestprocessing/%d_requestprocessing.csv", t_id);
     output_file.open(fileName, ios::out | ios::trunc);
     output_file << "t_id, iteration_count, request_count, request_start_time, request_end_time, request_processing_time" << endl;
+    sprintf(fileName, "./updateprocessing/%d_updateprocessing.csv", t_id);
+    ouput_file_updates.open(fileName, ios::out | ios::trunc);
+    ouput_file_updates << "t_id, iteration_count, update_count, update_start_time, update_end_time, update_processing_time" << endl;
 
     Uint32 start_quest = SDL_GetTicks() + sd->quest_between;
     Uint32 end_quest   = start_quest + sd->quest_min + rand() % (sd->quest_max-sd->quest_min+1);
@@ -164,6 +171,9 @@ void WorldUpdateModule::run()
 	    bucket->start();
 	    while ( ( p = bucket->next() ) != NULL )
 	    {
+	    	update_start_time = SDL_GetTicks();
+	    	update_count++;
+
 	    	ms = new MessageWithSerializator( MESSAGE_SC_REGULAR_UPDATE, t_id, p->address );	assert(ms);
 		    s = ms->getSerializator();															assert(s);
 		    
@@ -174,6 +184,9 @@ void WorldUpdateModule::run()
 	    	
 	    	if( sd->send_start_quest )		comm->send( new MessageXY(MESSAGE_SC_NEW_QUEST, t_id, p->address, sd->quest_pos), t_id );
 	    	if( sd->send_end_quest )		comm->send( new Message(MESSAGE_SC_QUEST_OVER, t_id, p->address), t_id );
+
+	    	update_end_time = SDL_GetTicks();
+	    	ouput_file_updates << t_id << ',' << iteration_count << ',' << update_count << ',' <<  update_start_time << ',' << update_end_time << ',' << update_end_time - update_start_time << "\n";
 	    }
 	
 	    SDL_WaitBarrier(barrier);
