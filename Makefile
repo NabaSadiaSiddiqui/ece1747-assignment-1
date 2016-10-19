@@ -8,7 +8,7 @@
 
 CC = gcc
 CXX = g++
-CXXFLAGS := `sdl-config --cflags` -I./src -Wall -g
+CXXFLAGS := `sdl-config --cflags` -I./src -Wall -g -std=c++11
 ## Other CXXFLAGS: (also defined in src/Settings.h)
 ## -D__DISABLE_RATE_MONITOR__	<== don't monitor trasnfer: faster transfer but no statistics
 ## -D__COMPRESSED_MESSAGES__	<== update messages from server to clients are compressed with zlib
