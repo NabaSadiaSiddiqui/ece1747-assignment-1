@@ -7,6 +7,9 @@
 #include "PlayerBucket.h"
 #include "../game/Region.h"
 
+#include <array>
+#include <list>
+
 class WorldMap
 {
 public:
@@ -25,6 +28,8 @@ public:
 	int blocks;				/* the number of blocked cells from 1000 cells */
 	int resources;			/* the number of resources on the map */
 	int min_res,max_res;	/* the minimun and maximum quantity	a resource can have (min 1, max 10) */
+
+	std::array<std::list<Region*>, 8> bins;
 
 
     Uint32 last_balance;   
@@ -53,6 +58,9 @@ public:
     
     void regenerateObjects();
     void rewardPlayers( Vector2D quest_pos );
+
+    void initializeBins();
+    int find_lightest_region();
 };
 
 

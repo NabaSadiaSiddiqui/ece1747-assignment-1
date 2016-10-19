@@ -1,6 +1,7 @@
 #include "ServerData.h"
 
 #include "WorldMap.h"
+#include <limits.h>
 
 
 void WorldMap::generate()
@@ -272,7 +273,84 @@ void WorldMap::balance_lightest()
 
 void WorldMap::balance_spread()
 {
+	printf("inside balance_spread \n");
+
+		  	Region* remap_region;
+		 	int bin_index;
+
+		 	//initialize the region lists
+		 	initializeBins();
+
+		 	// iterate through all the regions and re-map the regions to the lightest loaded bins
+		 	for( int i = 0; i < n_regs.x; i++){
+		 			for(int j = 0; j < n_regs.y; j++){
+		 				remap_region = &regions[i][j];
+		 				bin_index = find_lightest_region();
+		 				bins[bin_index].push_back(remap_region);
+		 				reassignRegion(remap_region, bin_index);
+		 			}
+		  	}
+
+
+		 	//Printing the player count in each bin
+		 	for (int i = 0; i < sd->num_threads; i++ ){
+					int bin_count = 0;
+		 			list<Region*>::iterator pi;			//iterating through the list of regions in the bin
+		 			for ( pi = bins[i].begin(); pi != bins[i].end(); pi++ ){
+
+		 			Region * x = *pi;
+		 			bin_count += x-> n_pls;  // get the player count for each region
+		 			}
+		 			printf("bin : %d \n", i);
+		 			printf("total player count in this bin: %d \n", bin_count);
+		 	}
+
+		  }
 }
+
+void WorldMap::initializeBins()
+{
+
+
+	printf("Initializing the bins \n");
+ 	for (int i = 0; i < sd->num_threads; i++ ){
+ 		bins[i].clear();
+	}
+}
+
+int WorldMap::find_lightest_region()
+{
+	printf("Inside find_lightest_load");
+
+  	int num_players = INT_MAX;
+  	int current_bin_count;
+  	int bin_index = 0;
+  	for (int i = 0; i < sd->num_threads; i++ ){
+
+ 		current_bin_count = 0;
+  		list<Region*>::iterator pi;			//iterating through the list of regions in the bin
+  		for ( pi = bins[i].begin(); pi != bins[i].end(); pi++ ){
+
+  			Region * x = *pi;
+
+ 			current_bin_count += x-> n_pls;  // get the player count for each region
+
+
+
+ 		if (current_bin_count < num_players){
+ 			num_players = current_bin_count;
+ 			bin_index = i;
+ 		}
+
+
+  	}
+  	printf("lightest region count: %d, bin index: %d \n", num_players, bin_index);
+
+  	return bin_index;
+
+
+
+  }
 
 void WorldMap::balance()
 {
